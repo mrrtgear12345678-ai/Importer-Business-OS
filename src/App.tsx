@@ -45,19 +45,23 @@ const AppRoutes = () => {
   );
 };
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 export default function App() {
   return (
-    <Router>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Suspense fallback={<div>Loading...</div>}>
-              <AppRoutes />
-              <Toaster />
-            </Suspense>
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Suspense fallback={<div>Loading...</div>}>
+                <AppRoutes />
+                <Toaster />
+              </Suspense>
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
