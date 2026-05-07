@@ -1,8 +1,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+let aiInstance: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (!aiInstance) {
+    aiInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+  }
+  return aiInstance;
+};
 
 export const generateProductDescription = async (name: string, category: string, features: string[]) => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Generate a professional, catchy product description for a ${category} item named "${name}". Key features: ${features.join(', ')}. Format as a short paragraph.`,
@@ -11,6 +19,7 @@ export const generateProductDescription = async (name: string, category: string,
 };
 
 export const getAIPricingSuggestion = async (costPrice: number, category: string, currentRetail: number) => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Given a product in category "${category}" with a landing cost of ${costPrice} and current retail price of ${currentRetail}, suggest an optimized retail and wholesale price for maximum profit and competitiveness. Return in JSON format.`,
@@ -31,6 +40,7 @@ export const getAIPricingSuggestion = async (costPrice: number, category: string
 };
 
 export const generateSocialMediaCopy = async (product: any, platform: 'Facebook' | 'TikTok' | 'WhatsApp') => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Write a high-converting ${platform} ad caption for: ${product.name}. Price: ${product.retail_price}. Include emojis and hashtags.`,
