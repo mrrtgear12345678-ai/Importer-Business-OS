@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Catch-all deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() { return request.auth != null; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    // For this simple prototype, we'll allow all signed-in users to manage data 
+    // but in a real app, we'd check roles.
+    function isStaff() { return isSignedIn(); } // Placeholder for more advanced role check
+
+    // -- Products --
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.cost_price is number && data.cost_price >= 0 &&
+             data.stock_quantity is number;
+    }
+
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create: if isStaff() && isValidProduct(incoming()) && 
+                    incoming().keys().hasAll(['name', 'cost_price', 'stock_quantity']);
+      allow update: if isStaff() && isValidProduct(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasAny(['stock_quantity', 'retail_price', 'wholesale_price', 'name', 'description'])
+      );
+      allow delete: if isStaff();
+    }
+
+    // -- Orders --
+    function isValidOrder(data) {
+      return data.customer_id is string && data.total_amount is number && 
+             data.status in ['pending', 'packed', 'shipped', 'delivered', 'cancelled'];
+    }
+
+    match /orders/{orderId} {
+      allow read: if isSignedIn(); // Customers can read their own too, but for admin we allow all signed in
+      allow create: if isSignedIn() && isValidOrder(incoming());
+      allow update: if isStaff() && isValidOrder(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasAny(['status', 'payment_status'])
+      );
+    }
+
+    // -- Customers --
+    match /customers/{customerId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // -- Suppliers --
+    match /suppliers/{supplierId} {
+      allow read, write: if isStaff();
+    }
+
+    // -- Sales agents --
+    match /sales_agents/{agentId} {
+      allow read, write: if isStaff();
+    }
+
+    // -- AI Insights --
+    match /insights/{insightId} {
+      allow read: if isStaff();
+      allow create: if false; // Only system should create
+    }
+    
+    // -- Admin collection for role checks if needed --
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+    }
+  }
+}

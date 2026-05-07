@@ -1,0 +1,118 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A product in the shop, either imported or local.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "image_url": { "type": "string" },
+        "category": { "type": "string" },
+        "supplier_id": { "type": "string" },
+        "cost_price": { "type": "number", "description": "Base price from supplier" },
+        "shipping_cost": { "type": "number", "description": "Shipping cost per unit" },
+        "landing_cost": { "type": "number", "description": "cost_price + shipping_cost" },
+        "retail_price": { "type": "number" },
+        "wholesale_price": { "type": "number" },
+        "stock_quantity": { "type": "number" },
+        "low_stock_threshold": { "type": "number" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "cost_price", "stock_quantity"]
+    },
+    "Supplier": {
+      "title": "Supplier",
+      "description": "Product supplier information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "contact_info": { "type": "string" },
+        "address": { "type": "string" },
+        "region": { "type": "string", "enum": ["China", "Local", "Other"] },
+        "website": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "B2C or B2B customer",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "type": { "type": "string", "enum": ["B2C", "B2B"] },
+        "business_name": { "type": "string", "description": "For B2B customers" },
+        "credit_limit": { "type": "number" },
+        "total_orders": { "type": "number" },
+        "assigned_agent_id": { "type": "string" }
+      },
+      "required": ["name", "phone", "type"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Sales order",
+      "type": "object",
+      "properties": {
+        "customer_id": { "type": "string" },
+        "customer_name": { "type": "string" },
+        "agent_id": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "product_id": { "type": "string" },
+              "name": { "type": "string" },
+              "quantity": { "type": "number" },
+              "price": { "type": "number" },
+              "total": { "type": "number" }
+            }
+          }
+        },
+        "total_amount": { "type": "number" },
+        "profit": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "packed", "shipped", "delivered", "cancelled"] },
+        "payment_status": { "type": "string", "enum": ["pending", "paid", "partial"] },
+        "payment_method": { "type": "string", "enum": ["COD", "Bank", "Credit"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customer_id", "items", "total_amount", "status"]
+    },
+    "SalesAgent": {
+      "title": "Sales Agent",
+      "description": "Commission based sales team",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "commission_rate": { "type": "number", "description": "Percentage value" },
+        "total_commissions": { "type": "number" }
+      }
+    },
+    "AIInsight": {
+      "title": "AI Insight",
+      "description": "Generated AI recommendations",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["pricing", "inventory", "marketing"] },
+        "product_id": { "type": "string" },
+        "content": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "products": { "schema": "Product", "description": "All products in the system" },
+    "suppliers": { "schema": "Supplier", "description": "List of vendors" },
+    "customers": { "schema": "Customer", "description": "User accounts for clients" },
+    "orders": { "schema": "Order", "description": "Sales transactions" },
+    "sales_agents": { "schema": "SalesAgent", "description": "Staff configuration" },
+    "insights": { "schema": "AIInsight", "description": "AI generated suggestions" }
+  }
+}
